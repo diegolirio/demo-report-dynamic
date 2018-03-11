@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -16,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Repository
-@PropertySource("classpath:/db.sql.properties")
+//@PropertySource("classpath:/db.sql.properties")
 public class JdbcRepository {
 
 	private static final Object DELIMITER = ";";
@@ -25,17 +23,17 @@ public class JdbcRepository {
 	@Autowired
     private JdbcTemplate jdbcTemplate;		
 
-	@Value("${sql.find-all}")
-	private String sqlFindAll;
+	//@Value("${sql.find-all}")
+	//private String sqlFindAll;
 	
-	public Iterable<Customer> findByAll() {
+	public Iterable<Customer> findByAll(String sqlFindAll) {
 		log.debug(sqlFindAll);
 		return jdbcTemplate.query(sqlFindAll, 
 								  new Object[]{}, 
 								  new CustomerToRowMapper()); 
 	}
 
-	public List<Map<String, Object>> findObjectAll() {
+	public List<Map<String, Object>> findObjectAll(String sqlFindAll) {
 	    //List<?> profilelist = new ArrayList<>();
 	    return this.jdbcTemplate.queryForList(sqlFindAll);
 	}
@@ -56,9 +54,9 @@ public class JdbcRepository {
 //		}
 //	}
 
-	private List<String> headers() {
+	private List<String> headers(List<Map<String, Object>> results) {
 		List<String> headers = new ArrayList<>();
-		List<Map<String, Object>> results = this.findObjectAll();
+		//List<Map<String, Object>> results = this.findObjectAll(sqlFindAll);
 		for (Map<String, Object> r : results) {
 			//Map<?, ?> m = (Map<?, ?>) r;
 			Set<?> s = r.keySet();
@@ -72,9 +70,9 @@ public class JdbcRepository {
 		return headers;
 	}
 
-	private List<Object> contents() {
+	private List<Object> contents(List<Map<String, Object>> results) {
 		List<Object> contents = new ArrayList<>();
-		List<Map<String, Object>> results = this.findObjectAll();
+		//List<Map<String, Object>> results = this.findObjectAll();
 		for (int i = 0; i < results.size(); i++) {
 			Map<?,?> m = (Map<?,?>) results.get(i);
 			//System.out.println(m);
@@ -89,7 +87,7 @@ public class JdbcRepository {
 		return contents;
 	}
 	
-	public void getAll() {
+	public void getAll(String sql) {
 //		List<String> headers = this.headers();
 //		List<Object> contents = this.contents();
 //		
@@ -103,8 +101,9 @@ public class JdbcRepository {
 //			if(i % headers.size() == 0) 
 //				System.out.println("==============================================");
 //		}
-		
-		StringBuilder contents = this.getContents(contents());
+		List<Map<String, Object>> results = this.findObjectAll(sql);		
+		List<String> headers = this.headers(results);
+		StringBuilder contents = this.generateReport(headers, contents(results));
 		System.out.println("==============================================");
 		System.out.println(contents.toString());
 	}
@@ -118,14 +117,18 @@ public class JdbcRepository {
 	}	
 	
 
-	private StringBuilder getContents(List<Object> contents) {
-		List<String> headers = this.headers();
+	private StringBuilder generateReport(List<String> headers, List<Object> contents) {
+		//List<String> headers = ;
 		StringBuilder sb = new StringBuilder(this.getHeaders(headers));
 		sb.append(NEW_LINE);
-		for (Object o : contents) {
+		//for (Object o : contents) {
+		for (int i = 0; i < contents.size(); i++) {
+			Object o = contents.get(i);
 			sb.append(o == null ? "" : o).append(DELIMITER);
-			int i = contents.indexOf(o)+1;
-			if(i % headers.size() == 0) 
+			//int idx = contents.indexOf(o)+1;
+			int idx = i+1;
+			int size = headers.size();
+			if(idx % size == 0) 
 				sb.append(NEW_LINE);
 		}
 		return sb;

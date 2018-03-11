@@ -4,12 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demoreportdynamic.service.Customer;
 import com.example.demoreportdynamic.service.CustomerRepository;
 import com.example.demoreportdynamic.service.JdbcRepository;
+import com.example.demoreportdynamic.service.Params;
 
 @RestController
 @RequestMapping
@@ -26,13 +29,13 @@ public class CustomerRestApiService {
 	}
 	
 	@GetMapping("/s")
-	public Iterable<Customer> findAlls() {
-		return jdbcRepository.findByAll();
+	public Iterable<Customer> findAlls(String sql) {
+		return jdbcRepository.findByAll(sql);
 	}
 	
 	@GetMapping("/o")
-	public ResponseEntity<?> findAllo() {
-		return new ResponseEntity<>(jdbcRepository.findObjectAll(), HttpStatus.OK);
+	public ResponseEntity<?> findAllo(String sql) {
+		return new ResponseEntity<>(jdbcRepository.findObjectAll(sql), HttpStatus.OK);
 	}
 	
 	@GetMapping("/save")
@@ -42,8 +45,14 @@ public class CustomerRestApiService {
 	}
 	
 	@GetMapping("/g")
-	public String getAll() {
-		jdbcRepository.getAll();
+	public String getAll(String sql) {
+		jdbcRepository.getAll(sql);
+		return "OK";
+	}
+	
+	@PostMapping("/g")
+	public String generateReport(@RequestBody Params params) {
+		jdbcRepository.getAll(params.getSql());
 		return "OK";
 	}
 	
